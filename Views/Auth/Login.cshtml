@@ -1,0 +1,45 @@
+﻿@model Stalika.Web.ViewModels.Auth.LoginViewModel
+
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="auth-card">
+    <div class="auth-title">STALIKA</div>
+    <div class="auth-subtitle">Вход в систему бронирования клуба</div>
+
+    <form asp-action="Login" method="post" class="auth-form">
+        @Html.AntiForgeryToken()
+
+        <div class="form-field">
+            <label asp-for="Email">Email</label>
+            <input asp-for="Email" />
+            <span asp-validation-for="Email" class="validation-text"></span>
+        </div>
+
+        <div class="form-field">
+            <label asp-for="Password">Пароль</label>
+            <input asp-for="Password" />
+            <span asp-validation-for="Password" class="validation-text"></span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="form-error">
+                @Model.ErrorMessage
+            </div>
+        }
+
+        <button type="submit" class="auth-button">Войти</button>
+        
+        <div style="text-align:center; margin-top:10px;">
+            <a asp-controller="Auth" asp-action="Register">Нет аккаунта? Зарегистрироваться</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

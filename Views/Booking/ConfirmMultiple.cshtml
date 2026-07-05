@@ -1,0 +1,172 @@
+﻿@model Stalika.Web.ViewModels.Booking.BookingMultiConfirmViewModel
+
+@{
+    ViewData["Title"] = "Подтверждение бронирования";
+}
+
+<h2 style="margin-bottom:18px;">Подтверждение бронирования</h2>
+
+<div asp-validation-summary="ModelOnly" style="color:red; margin-bottom:14px;"></div>
+
+<form asp-action="ConfirmMultiple" method="post">
+    @Html.AntiForgeryToken()
+
+    @for (int i = 0; i < Model.SelectedSlots.Count; i++)
+    {
+        <input type="hidden" asp-for="SelectedSlots[i].TableNumber" />
+        <input type="hidden" asp-for="SelectedSlots[i].StartTime" />
+        <input type="hidden" asp-for="SelectedSlots[i].EndTime" />
+    }
+
+    <div style="padding:14px; border:1px solid #ccc; background:#fafafa; margin-bottom:18px;">
+        <div style="font-size:20px; font-weight:600; margin-bottom:10px;">
+            Выбранные слоты
+        </div>
+
+        <ul style="margin-bottom:12px;">
+            @foreach (var slot in Model.SlotTexts)
+            {
+                <li>@slot</li>
+            }
+        </ul>
+
+        <div><strong>Общая длительность:</strong> @Model.TotalDurationHours.ToString("0.##") ч.</div>
+        <div><strong>Стоимость столов:</strong> @Model.SlotsTotalPrice.ToString("0.##") ₽</div>
+    </div>
+
+    @if (User.IsInRole("администратор"))
+    {
+        <div style="margin-bottom:18px;">
+            <label><strong>Выберите клиента</strong></label><br />
+            <select asp-for="SelectedClientId" style="width:420px; padding:6px;">
+                <option value="">Выберите клиента</option>
+                @foreach (var client in Model.AvailableClients)
+                {
+                    if (Model.SelectedClientId?.ToString() == client.Value)
+                    {
+                        <option value="@client.Value" selected>@client.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@client.Value">@client.Text</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+
+    <div style="margin-bottom:18px;">
+        <label><strong>Выберите тренера</strong></label><br />
+        <select asp-for="SelectedTrainerId" id="trainerSelect" style="width:420px; padding:6px;">
+            <option value="">Без тренера</option>
+            @foreach (var trainer in Model.Trainers)
+            {
+                if (Model.SelectedTrainerId == trainer.TrainerId)
+                {
+                    <option value="@trainer.TrainerId"
+                            data-rate="@trainer.HourlyRate.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                            selected>
+                        @trainer.FullName - @trainer.HourlyRate.ToString("0.##") ₽/час
+                    </option>
+                }
+                else
+                {
+                    <option value="@trainer.TrainerId"
+                            data-rate="@trainer.HourlyRate.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                        @trainer.FullName - @trainer.HourlyRate.ToString("0.##") ₽/час
+                    </option>
+                }
+            }
+        </select>
+    </div>
+
+    <div style="margin-bottom:18px;">
+        <h3>Инвентарь</h3>
+
+        @for (int i = 0; i < Model.EquipmentItems.Count; i++)
+        {
+            <input type="hidden" asp-for="EquipmentItems[i].EquipmentName" />
+            <input type="hidden" asp-for="EquipmentItems[i].Type" />
+            <input type="hidden" asp-for="EquipmentItems[i].AvailableQuantity" />
+            <input type="hidden" asp-for="EquipmentItems[i].PricePerHour" />
+
+            <div style="padding:12px; border:1px solid #cfe3f8; border-radius:12px; margin-bottom:10px; background:#fafdff;">
+                <div><strong>@Model.EquipmentItems[i].EquipmentName</strong></div>
+                <div>Тип: @Model.EquipmentItems[i].Type</div>
+                <div>Доступно: @Model.EquipmentItems[i].AvailableQuantity</div>
+                <div>Цена: @Model.EquipmentItems[i].PricePerHour.ToString("0.##") ₽/час</div>
+
+                <label>Количество</label><br />
+                <input asp-for="EquipmentItems[i].SelectedQuantity"
+                       class="equipment-qty"
+                       data-price="@Model.EquipmentItems[i].PricePerHour.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                       type="number"
+                       min="0"
+                       max="@Model.EquipmentItems[i].AvailableQuantity"
+                       style="width:120px;" />
+            </div>
+        }
+    </div>
+
+    <div style="padding:14px; border:1px solid #ccc; background:#fafafa; margin-bottom:18px;">
+        <div>Стоимость столов: <strong id="slotsTotal">@Model.SlotsTotalPrice.ToString("0.##")</strong> ₽</div>
+        <div>Стоимость тренера: <strong id="trainerTotal">0</strong> ₽</div>
+        <div>Стоимость инвентаря: <strong id="equipmentTotal">0</strong> ₽</div>
+        <div style="margin-top:8px; font-size:18px;">
+            Итоговая сумма: <strong id="grandTotal">@Model.TotalPrice.ToString("0.##")</strong> ₽
+        </div>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+        <button type="submit">Подтвердить бронирование</button>
+        <a asp-action="Index" class="btn">Назад</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const slotsTotal = parseFloat("@Model.SlotsTotalPrice.ToString(System.Globalization.CultureInfo.InvariantCulture)");
+        const durationHours = parseFloat("@Model.TotalDurationHours.ToString(System.Globalization.CultureInfo.InvariantCulture)");
+
+        const trainerSelect = document.getElementById('trainerSelect');
+        const qtyInputs = document.querySelectorAll('.equipment-qty');
+
+        const slotsTotalEl = document.getElementById('slotsTotal');
+        const trainerTotalEl = document.getElementById('trainerTotal');
+        const equipmentTotalEl = document.getElementById('equipmentTotal');
+        const grandTotalEl = document.getElementById('grandTotal');
+
+        function recalcTotals() {
+            let trainerTotal = 0;
+            let equipmentTotal = 0;
+
+            if (trainerSelect && trainerSelect.value) {
+                const selectedOption = trainerSelect.options[trainerSelect.selectedIndex];
+                const rate = parseFloat(selectedOption.dataset.rate || "0");
+                trainerTotal = rate * durationHours;
+            }
+
+            qtyInputs.forEach(input => {
+                const qty = parseInt(input.value || "0");
+                const price = parseFloat(input.dataset.price || "0");
+                equipmentTotal += qty * price * durationHours;
+            });
+
+            const grandTotal = slotsTotal + trainerTotal + equipmentTotal;
+
+            trainerTotalEl.textContent = trainerTotal.toFixed(2);
+            equipmentTotalEl.textContent = equipmentTotal.toFixed(2);
+            grandTotalEl.textContent = grandTotal.toFixed(2);
+        }
+
+        if (trainerSelect) {
+            trainerSelect.addEventListener('change', recalcTotals);
+        }
+
+        qtyInputs.forEach(input => {
+            input.addEventListener('input', recalcTotals);
+        });
+
+        recalcTotals();
+    </script>
+}

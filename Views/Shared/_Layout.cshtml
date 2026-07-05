@@ -1,0 +1,104 @@
+﻿@using System
+
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var isAuthPage = string.Equals(currentController, "Auth", StringComparison.OrdinalIgnoreCase);
+    var pageTitle = ViewData["Title"]?.ToString() ?? "STALIKA";
+    var userName = User.Identity?.Name ?? "Пользователь";
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@pageTitle - Stalika.Web</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Stalika.Web.styles.css" asp-append-version="true" />
+</head>
+<body>
+    @if (isAuthPage)
+    {
+        <div class="auth-shell">
+            <div class="auth-panel">
+                @RenderBody()
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="app-shell">
+            <aside class="sidebar">
+                <div class="sidebar-brand">
+                    <div class="sidebar-logo">STALIKA</div>
+                    <div class="sidebar-subtitle">Клуб настольного тенниса</div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a class="sidebar-link @(currentController == "Profile" ? "active" : "")"
+                       asp-controller="Profile" asp-action="Index">
+                        Профиль
+                    </a>
+
+                    <a class="sidebar-link @(currentController == "Booking" ? "active" : "")"
+                       asp-controller="Booking" asp-action="Index">
+                        Бронирование
+                    </a>
+
+                    <a class="sidebar-link @(currentController == "Tournaments" ? "active" : "")"
+                       asp-controller="Tournaments" asp-action="Index">
+                        Турниры
+                    </a>
+
+                    <a class="sidebar-link @(currentController == "MyBookings" ? "active" : "")"
+                       asp-controller="MyBookings" asp-action="Index">
+                        Мои бронирования
+                    </a>
+
+                    @if (User.IsInRole("администратор"))
+                    {
+                       <a class="sidebar-link sidebar-link-muted @(currentController == "Admin" ? "active" : "")"
+                           asp-controller="Admin" asp-action="Index">
+                            Админ-панель
+                       </a>
+
+                        <a class="sidebar-link sidebar-link-muted @(currentController == "Admin" ? "active" : "")"
+                            asp-controller="Admin" asp-action="Analytics">
+                            Аналитика
+                        </a>
+                    }
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="sidebar-user">@userName</div>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-controller="Auth" asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="sidebar-logout">Выйти</button>
+                        </form>
+                    }
+                </div>
+            </aside>
+
+            <div class="main-shell">
+                <header class="topbar">
+                    <div class="topbar-title">@pageTitle</div>
+                    <div class="topbar-user">@userName</div>
+                </header>
+
+                <main class="page-content">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

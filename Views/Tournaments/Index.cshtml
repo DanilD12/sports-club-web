@@ -1,0 +1,80 @@
+﻿@model List<Stalika.Web.ViewModels.Tournaments.TournamentItemViewModel>
+
+@{
+    ViewData["Title"] = "Турниры";
+}
+
+<h2 style="margin-bottom: 18px;">Турниры</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="color: green; margin-bottom: 12px; font-weight: 600;">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div style="color: red; margin-bottom: 12px; font-weight: 600;">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <p>Турниров пока нет.</p>
+}
+else
+{
+    <table border="1" cellpadding="10" cellspacing="0" style="width:100%; max-width:1000px;">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Организатор</th>
+                <th>Дата</th>
+                <th>Участников</th>
+                <th>Макс.</th>
+                <th>Свободно</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.TournamentName</td>
+                    <td>@item.Organizer</td>
+                    <td>@item.Date.ToString("dd.MM.yyyy")</td>
+                    <td>@item.CurrentParticipants</td>
+                    <td>@item.MaxParticipants</td>
+                    <td>@item.FreePlaces</td>
+                    <td>
+                        @if (User.IsInRole("администратор"))
+                        {
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <a asp-action="Participants" asp-route-tournamentId="@item.TournamentId" class="btn">Участники</a>
+                                <a asp-action="RegisterClient" asp-route-tournamentId="@item.TournamentId" class="btn">Записать клиента</a>
+                            </div>
+                        }
+                        else if (item.IsUserRegistered)
+                        {
+                            <span style="color: green; font-weight: 600;">Вы записаны</span>
+                        }
+                        else if (item.CanRegister)
+                        {
+                            <form asp-action="Register" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="tournamentId" value="@item.TournamentId" />
+                                <button type="submit">Записаться</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span style="color: #888;">Недоступно</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

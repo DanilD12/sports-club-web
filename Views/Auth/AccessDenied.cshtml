@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Доступ запрещён";
+}
+
+<div class="auth-card">
+    <div class="auth-title">Доступ запрещён</div>
+    <div class="auth-subtitle">У вас нет прав для просмотра этой страницы</div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <a asp-controller="Booking" asp-action="Index" class="auth-button" style="display:inline-block; text-decoration:none;">
+            На главную
+        </a>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+﻿@model Stalika.Web.ViewModels.Tournaments.TournamentRegisterClientViewModel
+
+@{
+    ViewData["Title"] = "Запись клиента на турнир";
+}
+
+<h2>Запись клиента на турнир</h2>
+
+<div style="margin-bottom:16px;">
+    <strong>@Model.TournamentName</strong><br />
+    Дата: @Model.Date.ToString("dd.MM.yyyy")
+</div>
+
+<form asp-action="RegisterClient" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="TournamentId" />
+
+    <div style="margin-bottom:16px;">
+        <label>Клиент</label><br />
+        <select asp-for="SelectedUserId" asp-items="Model.AvailableClients" style="width:420px;">
+            <option value="">Выберите клиента</option>
+        </select>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+        <button type="submit">Записать</button>
+        <a asp-action="Participants" asp-route-tournamentId="@Model.TournamentId" class="btn">К участникам</a>
+    </div>
+</form>

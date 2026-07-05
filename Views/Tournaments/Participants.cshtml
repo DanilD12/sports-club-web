@@ -1,0 +1,49 @@
+﻿@model Stalika.Web.ViewModels.Tournaments.TournamentParticipantsPageViewModel
+
+@{
+    ViewData["Title"] = "Участники турнира";
+}
+
+<h2>Участники турнира</h2>
+
+<div style="margin-bottom:16px;">
+    <strong>@Model.TournamentName</strong><br />
+    Дата: @Model.Date.ToString("dd.MM.yyyy")
+</div>
+
+@if (!Model.Participants.Any())
+{
+    <p>Участников пока нет.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ФИО</th>
+                <th>Email</th>
+                <th>Телефон</th>
+                <th>Роль</th>
+                <th>Место</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Participants)
+            {
+                <tr>
+                    <td>@item.UserId</td>
+                    <td>@item.FullName</td>
+                    <td>@item.Email</td>
+                    <td>@item.Phone</td>
+                    <td>@item.RoleName</td>
+                    <td>@(item.Place?.ToString() ?? "—")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div style="margin-top:18px;">
+    <a asp-action="Index" class="btn">Назад</a>
+</div>

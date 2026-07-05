@@ -1,0 +1,73 @@
+﻿@model Stalika.Web.ViewModels.Profile.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Профиль";
+}
+
+<h2>Профиль пользователя</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="color: green; margin-bottom: 12px;">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<form asp-action="Index" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" style="color:red; margin-bottom:12px;"></div>
+
+    <div style="margin-bottom: 12px;">
+        <label asp-for="FirstName">Имя</label><br />
+        <input asp-for="FirstName" style="width: 320px;" />
+        <span asp-validation-for="FirstName" style="color:red;"></span>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <label asp-for="LastName">Фамилия</label><br />
+        <input asp-for="LastName" style="width: 320px;" />
+        <span asp-validation-for="LastName" style="color:red;"></span>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <label asp-for="Email">Email</label><br />
+        <input asp-for="Email" style="width: 320px;" />
+        <span asp-validation-for="Email" style="color:red;"></span>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <label asp-for="Phone">Телефон</label><br />
+        <input asp-for="Phone" style="width: 320px;" />
+        <span asp-validation-for="Phone" style="color:red;"></span>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <label>Роль</label><br />
+        <input value="@Model.RoleName" readonly style="width: 320px; background: #f3f3f3;" />
+    </div>
+
+    <hr />
+
+    <h4>Смена пароля</h4>
+
+    <div style="margin-bottom: 12px;">
+        <label asp-for="NewPassword">Новый пароль</label><br />
+        <input asp-for="NewPassword" style="width: 320px;" />
+        <span asp-validation-for="NewPassword" style="color:red;"></span>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+        <label asp-for="ConfirmPassword">Повторите пароль</label><br />
+        <input asp-for="ConfirmPassword" style="width: 320px;" />
+        <span asp-validation-for="ConfirmPassword" style="color:red;"></span>
+    </div>
+
+    <button type="submit">Сохранить</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

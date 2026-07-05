@@ -1,0 +1,54 @@
+﻿@model Stalika.Web.ViewModels.Admin.AdminTournamentEditViewModel
+
+@{
+    bool isEdit = Model.TournamentId.HasValue;
+    ViewData["Title"] = isEdit ? "Редактирование турнира" : "Создание турнира";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form method="post" asp-action="@(isEdit ? "EditTournament" : "CreateTournament")">
+    @Html.AntiForgeryToken()
+
+    @if (isEdit)
+    {
+        <input type="hidden" asp-for="TournamentId" />
+    }
+
+    <div asp-validation-summary="ModelOnly" style="color:red; margin-bottom:12px;"></div>
+
+    <div style="margin-bottom:12px;">
+        <label asp-for="TournamentName">Название</label><br />
+        <input asp-for="TournamentName" style="width:320px;" />
+        <span asp-validation-for="TournamentName" class="validation-text"></span>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label asp-for="Organizer">Организатор</label><br />
+        <input asp-for="Organizer" style="width:320px;" />
+        <span asp-validation-for="Organizer" class="validation-text"></span>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label asp-for="Date">Дата</label><br />
+        <input asp-for="Date" type="date" style="width:220px;" />
+        <span asp-validation-for="Date" class="validation-text"></span>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label asp-for="MaxParticipants">Максимум участников</label><br />
+        <input asp-for="MaxParticipants" type="number" min="1" style="width:220px;" />
+        <span asp-validation-for="MaxParticipants" class="validation-text"></span>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+        <button type="submit">Сохранить</button>
+        <a asp-action="Tournaments" class="btn">Назад</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

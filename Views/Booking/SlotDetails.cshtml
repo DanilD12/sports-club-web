@@ -1,0 +1,41 @@
+﻿@model Stalika.Web.ViewModels.Booking.BookingSlotDetailsViewModel
+
+@{
+    ViewData["Title"] = "Информация о бронировании";
+}
+
+<h2>Информация о бронировании</h2>
+
+<div style="padding:16px; border:1px solid #dbeaf8; border-radius:18px; background:#fafcff;">
+    <p><strong>ID брони:</strong> @Model.BookingNumber</p>
+    <p><strong>Стол:</strong> @Model.TableNumber</p>
+    <p><strong>Время:</strong> @Model.StartTime.ToString("dd.MM.yyyy HH:mm") - @Model.EndTime.ToString("HH:mm")</p>
+
+    <hr />
+
+    <p><strong>Клиент:</strong> @Model.ClientName</p>
+    <p><strong>Email:</strong> @Model.ClientEmail</p>
+    <p><strong>Телефон:</strong> @Model.ClientPhone</p>
+
+    <p><strong>Тренер:</strong> @(string.IsNullOrWhiteSpace(Model.TrainerName) ? "—" : Model.TrainerName)</p>
+    <p><strong>Сумма:</strong> @Model.TotalPrice.ToString("0.##") ₽</p>
+
+    <p><strong>Инвентарь:</strong></p>
+    @if (Model.EquipmentItems.Any())
+    {
+        <ul>
+            @foreach (var item in Model.EquipmentItems)
+            {
+                <li>@item</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>—</p>
+    }
+
+    <div style="margin-top:18px;">
+        <a asp-action="Index" asp-route-date="@Model.StartTime.ToString("yyyy-MM-dd")" class="btn">Назад</a>
+    </div>
+</div>

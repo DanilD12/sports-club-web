@@ -1,0 +1,253 @@
+﻿@model Stalika.Web.ViewModels.Admin.AdminAnalyticsViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Аналитика";
+
+    var bookingsLabels = JsonSerializer.Serialize(Model.BookingsByDay.Select(x => x.Label));
+    var bookingsValues = JsonSerializer.Serialize(Model.BookingsByDay.Select(x => x.Value));
+
+    var revenueLabels = JsonSerializer.Serialize(Model.RevenueByDay.Select(x => x.Label));
+    var revenueValues = JsonSerializer.Serialize(Model.RevenueByDay.Select(x => x.Value));
+
+    var equipmentLabels = JsonSerializer.Serialize(Model.PopularEquipment.Select(x => x.EquipmentName));
+    var equipmentValues = JsonSerializer.Serialize(Model.PopularEquipment.Select(x => x.TotalQuantity));
+}
+
+<h2>Аналитика</h2>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
+    <div style="padding:16px; background:#edf6ff; border-radius:16px;">
+        <div style="font-size:14px; color:#4c6b88;">Пользователи</div>
+        <div style="font-size:28px; font-weight:800;">@Model.TotalUsers</div>
+    </div>
+
+    <div style="padding:16px; background:#edf6ff; border-radius:16px;">
+        <div style="font-size:14px; color:#4c6b88;">Бронирования</div>
+        <div style="font-size:28px; font-weight:800;">@Model.TotalBookings</div>
+    </div>
+
+    <div style="padding:16px; background:#edf6ff; border-radius:16px;">
+        <div style="font-size:14px; color:#4c6b88;">Турниры</div>
+        <div style="font-size:28px; font-weight:800;">@Model.TotalTournaments</div>
+    </div>
+
+    <div style="padding:16px; background:#edf6ff; border-radius:16px;">
+        <div style="font-size:14px; color:#4c6b88;">Тренеры</div>
+        <div style="font-size:28px; font-weight:800;">@Model.TotalTrainers</div>
+    </div>
+
+    <div style="padding:16px; background:#edf6ff; border-radius:16px;">
+        <div style="font-size:14px; color:#4c6b88;">Общий доход</div>
+        <div style="font-size:28px; font-weight:800;">@Model.TotalRevenue.ToString("0.##") ₽</div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:28px;">
+    <div style="background:#fafcff; border-radius:18px; padding:18px;">
+        <h3>Бронирования за 7 дней</h3>
+        <canvas id="bookingsChart" height="140"></canvas>
+    </div>
+
+    <div style="background:#fafcff; border-radius:18px; padding:18px;">
+        <h3>Выручка за 7 дней</h3>
+        <canvas id="revenueChart" height="140"></canvas>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:28px;">
+    <div style="background:#fafcff; border-radius:18px; padding:18px;">
+        <h3>Популярный инвентарь</h3>
+        <canvas id="equipmentChart" height="180"></canvas>
+    </div>
+
+    <div>
+        <h3>Топ столов по бронированиям</h3>
+
+        @if (!Model.TopTables.Any())
+        {
+            <p>Нет данных.</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Стол</th>
+                        <th>Бронирований</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.TopTables)
+                    {
+                        <tr>
+                            <td>@item.TableNumber</td>
+                            <td>@item.BookingCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:28px;">
+    <div>
+        <h3>Низкий остаток инвентаря</h3>
+
+        @if (!Model.LowInventoryItems.Any())
+        {
+            <p>Позиции с критически малым остатком не найдены.</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Остаток</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LowInventoryItems)
+                    {
+                        <tr>
+                            <td>@item.EquipmentName</td>
+                            <td>@item.Type</td>
+                            <td>@item.Quantity</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div>
+        <h3>Топ клиентов</h3>
+
+        @if (!Model.TopClients.Any())
+        {
+            <p>Нет данных.</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Клиент</th>
+                        <th>Бронирований</th>
+                        <th>Потрачено</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.TopClients)
+                    {
+                        <tr>
+                            <td>@item.UserId</td>
+                            <td>@item.FullName</td>
+                            <td>@item.BookingCount</td>
+                            <td>@item.TotalSpent.ToString("0.##") ₽</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<div>
+    <h3>Статистика по тренерам</h3>
+
+    @if (!Model.TrainerStats.Any())
+    {
+        <p>Нет данных.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>ID тренера</th>
+                    <th>Тренер</th>
+                    <th>Тренировок</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.TrainerStats)
+                {
+                    <tr>
+                        <td>@item.TrainerId</td>
+                        <td>@item.FullName</td>
+                        <td>@item.BookingCount</td>
+                        <td>@item.TotalRevenue.ToString("0.##") ₽</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const bookingsLabels = @Html.Raw(bookingsLabels);
+        const bookingsValues = @Html.Raw(bookingsValues);
+
+        const revenueLabels = @Html.Raw(revenueLabels);
+        const revenueValues = @Html.Raw(revenueValues);
+
+        const equipmentLabels = @Html.Raw(equipmentLabels);
+        const equipmentValues = @Html.Raw(equipmentValues);
+
+        new Chart(document.getElementById('bookingsChart'), {
+            type: 'bar',
+            data: {
+                labels: bookingsLabels,
+                datasets: [{
+                    label: 'Бронирования',
+                    data: bookingsValues,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Выручка',
+                    data: revenueValues,
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+        new Chart(document.getElementById('equipmentChart'), {
+            type: 'doughnut',
+            data: {
+                labels: equipmentLabels,
+                datasets: [{
+                    label: 'Инвентарь',
+                    data: equipmentValues
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+}

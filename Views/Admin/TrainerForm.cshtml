@@ -1,0 +1,61 @@
+﻿@model Stalika.Web.ViewModels.Admin.AdminTrainerEditViewModel
+
+@{
+    bool isEdit = ViewBag.IsEdit == true;
+    ViewData["Title"] = isEdit ? "Редактирование тренера" : "Добавление тренера";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form method="post" asp-action="@(isEdit ? "EditTrainer" : "CreateTrainer")">
+    @Html.AntiForgeryToken()
+
+    @if (isEdit)
+    {
+        <input type="hidden" asp-for="TrainerId" />
+        <input type="hidden" asp-for="UserId" />
+    }
+
+    <div asp-validation-summary="ModelOnly" style="color:red; margin-bottom:12px;"></div>
+
+    <div style="margin-bottom:12px;">
+        <label>Пользователь</label><br />
+        @if (isEdit)
+        {
+            <input value="@ViewBag.CurrentUserName" style="width:420px;" readonly />
+            <div style="font-size:13px; color:#666; margin-top:4px;">
+                Пользователь не меняется после назначения тренером.
+            </div>
+        }
+        else
+        {
+            <select asp-for="UserId" asp-items="Model.AvailableUsers" style="width:420px;">
+                <option value="">Выберите пользователя</option>
+            </select>
+            <span asp-validation-for="UserId" class="validation-text"></span>
+        }
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label asp-for="HourlyRate">Ставка за час</label><br />
+        <input asp-for="HourlyRate" type="number" step="0.01" min="0" style="width:220px;" />
+        <span asp-validation-for="HourlyRate" class="validation-text"></span>
+    </div>
+
+    <div style="margin-bottom:12px;">
+        <label asp-for="Qualification">Квалификация</label><br />
+        <input asp-for="Qualification" style="width:420px;" />
+        <span asp-validation-for="Qualification" class="validation-text"></span>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+        <button type="submit">Сохранить</button>
+        <a asp-action="Trainers" class="btn">Назад</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

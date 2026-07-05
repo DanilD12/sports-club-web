@@ -1,0 +1,66 @@
+﻿@model List<Stalika.Web.Entities.Equipment>
+
+@{
+    ViewData["Title"] = "Управление инвентарём";
+}
+
+<h2>Управление инвентарём</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="color: green; margin-bottom: 12px; font-weight: 600;">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div style="color: red; margin-bottom: 12px; font-weight: 600;">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div style="margin-bottom:16px;">
+    <a asp-action="CreateEquipment" class="btn">Добавить инвентарь</a>
+</div>
+
+@if (!Model.Any())
+{
+    <p>Инвентарь пока не добавлен.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Тип</th>
+                <th>Количество</th>
+                <th>Цена за час</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.EquipmentName</td>
+                    <td>@item.Type</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.PricePerHour.ToString("0.##") ₽</td>
+                    <td>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <a asp-action="EditEquipment" asp-route-id="@item.EquipmentName" class="btn">Редактировать</a>
+
+                            <form asp-action="DeleteEquipment" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.EquipmentName" />
+                                <button type="submit" onclick="return confirm('Удалить эту позицию инвентаря?');">Удалить</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

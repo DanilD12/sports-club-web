@@ -1,0 +1,149 @@
+﻿@model Stalika.Web.ViewModels.Admin.AdminBookingsPageViewModel
+
+@{
+    ViewData["Title"] = "Все бронирования";
+}
+
+<h2>Все бронирования</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="color: green; margin-bottom: 12px; font-weight: 600;">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div style="color: red; margin-bottom: 12px; font-weight: 600;">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<form method="get" asp-action="Bookings" style="margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+    <div>
+        <label>Поиск по клиенту</label><br />
+        <input type="text" name="search" value="@Model.Search" style="width:220px;" />
+    </div>
+
+    <div>
+        <label>Тренер</label><br />
+        <select name="trainerName" style="width:220px;">
+            <option value="">Все</option>
+            @foreach (var trainer in Model.Trainers)
+            {
+                if (Model.TrainerName == trainer)
+                {
+                    <option value="@trainer" selected>@trainer</option>
+                }
+                else
+                {
+                    <option value="@trainer">@trainer</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div>
+        <label>Стол</label><br />
+        <select name="tableNumber" style="width:140px;">
+            <option value="">Все</option>
+            @foreach (var table in Model.Tables)
+            {
+                if (Model.TableNumber == table)
+                {
+                    <option value="@table" selected>@table</option>
+                }
+                else
+                {
+                    <option value="@table">@table</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div>
+        <label>Дата</label><br />
+        <input type="date" name="date" value="@(Model.Date?.ToString("yyyy-MM-dd"))" />
+    </div>
+
+    <div>
+        <button type="submit">Фильтровать</button>
+    </div>
+
+    <div>
+        <a asp-action="Bookings" class="btn">Сбросить</a>
+    </div>
+
+    <div>
+        <a asp-action="ExportBookings"
+           asp-route-search="@Model.Search"
+           asp-route-trainerName="@Model.TrainerName"
+           asp-route-tableNumber="@Model.TableNumber"
+           asp-route-date="@(Model.Date?.ToString("yyyy-MM-dd"))"
+           class="btn">
+            Экспорт в Excel
+        </a>
+    </div>
+</form>
+
+@if (!Model.Items.Any())
+{
+    <p>Бронирования не найдены.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Время</th>
+                <th>Стол</th>
+                <th>Клиент</th>
+                <th>Тренер</th>
+                <th>Сумма</th>
+                <th>Инвентарь</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.BookingNumber</td>
+                    <td>@item.BookingDate?.ToString("dd.MM.yyyy")</td>
+                    <td>@item.StartTime.ToString("HH:mm") - @item.EndTime.ToString("HH:mm")</td>
+                    <td>@item.TableNumber</td>
+                    <td>@item.ClientName</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.TrainerName) ? "—" : item.TrainerName)</td>
+                    <td>@item.TotalPrice.ToString("0.##") ₽</td>
+                    <td>
+                        @if (item.EquipmentItems.Any())
+                        {
+                            <ul style="margin:0; padding-left:18px;">
+                                @foreach (var eq in item.EquipmentItems)
+                                {
+                                    <li>@eq</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>—</span>
+                        }
+                    </td>
+                    <td>
+                        <form asp-action="CancelBooking" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="bookingNumber" value="@item.BookingNumber" />
+                            <button type="submit" onclick="return confirm('Отменить это бронирование?');">
+                                Отменить
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

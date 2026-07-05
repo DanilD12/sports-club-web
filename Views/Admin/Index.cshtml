@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Админ-панель";
+}
+
+<h2>Админ-панель</h2>
+
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <div class="stat-label">Пользователи</div>
+        <div class="stat-value">@ViewBag.UsersCount</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Бронирования</div>
+        <div class="stat-value">@ViewBag.BookingsCount</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Турниры</div>
+        <div class="stat-value">@ViewBag.TournamentsCount</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Инвентарь</div>
+        <div class="stat-value">@ViewBag.EquipmentCount</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Тренеры</div>
+        <div class="stat-value">@ViewBag.TrainersCount</div>
+    </div>
+</div>
+
+<div class="admin-grid">
+    <a asp-controller="Admin" asp-action="Users" class="admin-card">
+        <div class="admin-card-title">Пользователи</div>
+        <div class="admin-card-text">
+            Просмотр зарегистрированных пользователей и их ролей в системе.
+        </div>
+        <div class="admin-card-link">Открыть раздел →</div>
+    </a>
+
+    <a asp-controller="Admin" asp-action="Bookings" class="admin-card">
+        <div class="admin-card-title">Все бронирования</div>
+        <div class="admin-card-text">
+            Общий список бронирований, фильтрация, просмотр и отмена записей.
+        </div>
+        <div class="admin-card-link">Открыть раздел →</div>
+    </a>
+
+    <a asp-controller="Admin" asp-action="Tournaments" class="admin-card">
+        <div class="admin-card-title">Турниры</div>
+        <div class="admin-card-text">
+            Создание, редактирование и удаление турниров, контроль доступных мест.
+        </div>
+        <div class="admin-card-link">Открыть раздел →</div>
+    </a>
+
+    <a asp-controller="Admin" asp-action="Equipment" class="admin-card">
+        <div class="admin-card-title">Инвентарь</div>
+        <div class="admin-card-text">
+            Управление количеством, типами и стоимостью аренды спортивного инвентаря.
+        </div>
+        <div class="admin-card-link">Открыть раздел →</div>
+    </a>
+
+    <a asp-controller="Admin" asp-action="Trainers" class="admin-card">
+        <div class="admin-card-title">Тренеры</div>
+        <div class="admin-card-text">
+            Назначение тренеров, редактирование ставки и квалификации.
+        </div>
+        <div class="admin-card-link">Открыть раздел →</div>
+    </a>
+
+    <a asp-controller="Admin" asp-action="Analytics" class="admin-card">
+        <div class="admin-card-title">Аналитика</div>
+        <div class="admin-card-text">
+            Графики, показатели системы, популярность инвентаря и статистика тренеров.
+        </div>
+        <div class="admin-card-link">Открыть раздел →</div>
+    </a>
+</div>

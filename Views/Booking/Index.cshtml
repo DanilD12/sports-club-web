@@ -1,0 +1,187 @@
+﻿@model Stalika.Web.ViewModels.Booking.BookingPageViewModel
+
+@{
+    ViewData["Title"] = "Бронирование";
+}
+
+<h2 style="margin-bottom: 18px;">Бронирование столов</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div style="color: green; margin-bottom: 12px; font-weight: 600;">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div style="color: red; margin-bottom: 12px; font-weight: 600;">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<form method="get" asp-action="Index" style="margin-bottom: 24px;">
+    <label style="margin-right: 8px;">Выберите дату:</label>
+    <input type="date" name="date" value="@Model.SelectedDate.ToString("yyyy-MM-dd")" />
+    <button type="submit" style="margin-left: 8px;">Показать</button>
+</form>
+
+@foreach (var gymGroup in Model.Tables.GroupBy(t => t.GymNumber))
+{
+    <div style="margin-bottom: 28px;">
+        <h3 style="margin-bottom: 12px;">Зал @gymGroup.Key</h3>
+
+        @foreach (var table in gymGroup)
+        {
+            <div style="margin-bottom: 18px; padding: 14px; border: 1px solid #cfcfcf; background: #fafafa;">
+                <div style="margin-bottom: 8px; font-size: 22px; font-weight: 600;">
+                    Стол @table.TableNumber
+                </div>
+
+                <div style="margin-bottom: 6px;">
+                    Цена за час: <strong>@table.PricePerHour.ToString("0.##") ₽</strong>
+                </div>
+
+                <div style="margin-bottom: 12px; color: #555;">
+                    Время работы: @table.OpeningTime.ToString(@"hh\:mm") - @table.ClosingTime.ToString(@"hh\:mm")
+                </div>
+
+                <div>
+                    @foreach (var slot in table.Slots)
+                    {
+                        if (slot.IsAvailable)
+                        {
+                            <button type="button"
+                                    class="slot-select-btn"
+                                    data-table="@slot.TableNumber"
+                                    data-start="@slot.StartTime.ToString("yyyy-MM-ddTHH:mm:ss")"
+                                    data-end="@slot.EndTime.ToString("yyyy-MM-ddTHH:mm:ss")"
+                                    data-text="Стол @slot.TableNumber | @slot.StartTime.ToString("dd.MM.yyyy HH:mm")-@slot.EndTime.ToString("HH:mm")"
+                                    style="display:inline-block; min-width:92px; margin:4px; padding:8px 10px; border:1px solid #1f6feb; background:white; text-align:center; color:black; cursor:pointer;">
+                                @slot.TimeText
+                            </button>
+                        }
+                        else if (slot.IsPast)
+                        {
+                            <span style="display:inline-block; min-width:92px; margin:4px; padding:8px 10px; background:#f8dede; color:#9a4d4d; border:1px solid #e3bcbc; text-align:center;">
+                                @slot.TimeText
+                            </span>
+                        }
+                        else if (User.IsInRole("администратор"))
+                        {
+                            <a asp-action="SlotDetails"
+                               asp-route-tableNumber="@slot.TableNumber"
+                               asp-route-startTime="@slot.StartTime.ToString("yyyy-MM-ddTHH:mm:ss")"
+                               asp-route-endTime="@slot.EndTime.ToString("yyyy-MM-ddTHH:mm:ss")"
+                               style="display:inline-block; min-width:92px; margin:4px; padding:8px 10px; background:#d9d9d9; color:#444; border:1px solid #bfbfbf; text-align:center; text-decoration:none;">
+                                @slot.TimeText
+                            </a>
+                        }
+                        else
+                        {
+                            <span style="display:inline-block; min-width:92px; margin:4px; padding:8px 10px; background:#d9d9d9; color:#666; border:1px solid #bfbfbf; text-align:center;">
+                                @slot.TimeText
+                            </span>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<form asp-action="PrepareConfirm" method="post" id="multiBookingForm" style="margin-top:24px;">
+    @Html.AntiForgeryToken()
+
+    <div style="padding:18px; border:1px solid #dbeaf8; border-radius:18px; background:#fafcff;">
+        <h3 style="margin-bottom:12px;">Выбранные слоты</h3>
+
+        <div id="selectedSlotsEmpty" style="color:#666;">
+            Пока ничего не выбрано
+        </div>
+
+        <ul id="selectedSlotsList" style="display:none; margin-bottom:16px;"></ul>
+
+        <div id="hiddenSlotsContainer"></div>
+
+        <button type="submit" id="submitSelectedSlotsBtn" disabled>
+            Забронировать выбранное
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const selectedSlots = [];
+        const buttons = document.querySelectorAll('.slot-select-btn');
+        const list = document.getElementById('selectedSlotsList');
+        const emptyBlock = document.getElementById('selectedSlotsEmpty');
+        const hiddenContainer = document.getElementById('hiddenSlotsContainer');
+        const submitBtn = document.getElementById('submitSelectedSlotsBtn');
+
+        function slotKey(table, start, end) {
+            return `${table}|${start}|${end}`;
+        }
+
+        function renderSelectedSlots() {
+            list.innerHTML = '';
+            hiddenContainer.innerHTML = '';
+
+            if (selectedSlots.length === 0) {
+                list.style.display = 'none';
+                emptyBlock.style.display = 'block';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            list.style.display = 'block';
+            emptyBlock.style.display = 'none';
+            submitBtn.disabled = false;
+
+            selectedSlots.forEach((slot, index) => {
+                const li = document.createElement('li');
+                li.textContent = slot.text;
+                list.appendChild(li);
+
+                hiddenContainer.insertAdjacentHTML('beforeend', `
+                    <input type="hidden" name="SelectedSlots[${index}].TableNumber" value="${slot.tableNumber}" />
+                    <input type="hidden" name="SelectedSlots[${index}].StartTime" value="${slot.startTime}" />
+                    <input type="hidden" name="SelectedSlots[${index}].EndTime" value="${slot.endTime}" />
+                `);
+            });
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const tableNumber = this.dataset.table;
+                const startTime = this.dataset.start;
+                const endTime = this.dataset.end;
+                const text = this.dataset.text;
+
+                const key = slotKey(tableNumber, startTime, endTime);
+                const existingIndex = selectedSlots.findIndex(x => x.key === key);
+
+                if (existingIndex >= 0) {
+                    selectedSlots.splice(existingIndex, 1);
+                    this.style.background = 'white';
+                    this.style.color = 'black';
+                } else {
+                    selectedSlots.push({
+                        key,
+                        tableNumber,
+                        startTime,
+                        endTime,
+                        text
+                    });
+
+                    this.style.background = '#2d8cf0';
+                    this.style.color = 'white';
+                }
+
+                renderSelectedSlots();
+            });
+        });
+
+        renderSelectedSlots();
+    </script>
+}
